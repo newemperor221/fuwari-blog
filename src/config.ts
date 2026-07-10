@@ -9,9 +9,9 @@ import type {
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: "我的博客",
-	keywords: "Astro, Blog, Fuwari, 个人博客",
-	description: "基于 Astro 与 Fuwari-for-TR0-Blog 主题搭建的个人博客。",
+	title: "折腾手记",
+	keywords: "技术笔记, 运维, 配置, 折腾, 个人博客",
+	description: "记录系统、网络与日常折腾。",
 	lang: "zh_CN", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
 		hue: 250, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
@@ -55,10 +55,10 @@ export const navBarConfig: NavBarConfig = {
 };
 
 export const profileConfig: ProfileConfig = {
-	title: "我的博客",
+	title: "折腾手记",
 	avatar: "assets/images/avatar.png", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 	name: "woioeow",
-	bio: "基于 Astro 构建的个人博客。",
+	bio: "记录系统、网络与日常折腾。",
 	links: [
 		{
 			name: "Home",
