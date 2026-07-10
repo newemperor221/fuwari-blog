@@ -63,7 +63,7 @@ export const profileConfig: ProfileConfig = {
 		{
 			name: "Home",
 			icon: "fa6-brands:chrome",
-			url: "https://newemperor221.github.io/fuwari-blog/",
+			url: "https://blog.vian.im/",
 		},
 		{
 			name: "GitHub",
