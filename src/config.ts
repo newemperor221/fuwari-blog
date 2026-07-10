@@ -1,5 +1,6 @@
 import type {
 	ExpressiveCodeConfig,
+	Friends,
 	LicenseConfig,
 	NavBarConfig,
 	ProfileConfig,
@@ -49,7 +50,7 @@ export const navBarConfig: NavBarConfig = {
 			name: "友链",
 			url: "/friends/",
 			external: false,
-		}
+		},
 	],
 };
 
@@ -75,7 +76,7 @@ export const profileConfig: ProfileConfig = {
 			url: "https://github.com/newemperor221/hermes-custom-skills",
 		},
 	],
-	icp: ""
+	icp: "",
 };
 
 export const licenseConfig: LicenseConfig = {
@@ -90,4 +91,4 @@ export const expressiveCodeConfig: ExpressiveCodeConfig = {
 	theme: "github-dark",
 };
 
-export const friends = []
+export const friends: Friends = [];

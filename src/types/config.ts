@@ -4,7 +4,7 @@ export type SiteConfig = {
 	title: string;
 	keywords: string;
 	description: string;
-	
+
 	lang:
 		| "en"
 		| "zh_CN"
@@ -39,14 +39,12 @@ export type SiteConfig = {
 	favicon: Favicon[];
 };
 
-export type Friends = [
-	{
-		name: string;
-		url: string;
-		avatar: string;
-		description: string;
-	}
-];
+export type Friends = {
+	name: string;
+	url: string;
+	avatar: string;
+	description: string;
+}[];
 
 export type Favicon = {
 	src: string;

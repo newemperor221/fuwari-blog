@@ -2,7 +2,7 @@ import { h } from "hastscript";
 
 export { DownloadComponent };
 
-function DownloadComponent(props, children) {
+function DownloadComponent(props, _children) {
 	// 验证指令格式
 	if (!props || !props.title) {
 		return h("div", { class: "error" }, "下载组件需要 title 属性");

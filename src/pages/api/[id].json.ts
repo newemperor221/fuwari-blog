@@ -53,11 +53,11 @@ export const GET: APIRoute = async ({ params }) => {
 			if (s0.startsWith("http://") || s0.startsWith("https://")) return s0;
 			let s = s0;
 			if (s.startsWith("./")) s = s.slice(2);
-			if (!s.startsWith("/")) s = "/" + s;
+			if (!s.startsWith("/")) s = `/${s}`;
 			return s;
 		};
 		const imageUrlNormalized = normalizeImagePath(frontmatter?.image);
-		const a = article!; // 非空断言，已在上方判空
+		const a = article;
 
 		// 使用markdown-it渲染HTML
 		const md = new MarkdownIt();
