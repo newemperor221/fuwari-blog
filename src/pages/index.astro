@@ -1,0 +1,36 @@
+---
+import Pagination from "../components/control/Pagination.astro";
+import PostPage from "../components/PostPage.astro";
+import { PAGE_SIZE } from "../constants/constants";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { getSortedPosts } from "../utils/content-utils";
+
+// 固定显示第一页内容
+const allBlogPosts = await getSortedPosts();
+const firstPagePosts = allBlogPosts.slice(0, PAGE_SIZE);
+
+// 创建固定的第一页对象
+const page = {
+	data: firstPagePosts,
+	start: 0,
+	end: Math.min(PAGE_SIZE - 1, allBlogPosts.length - 1),
+	currentPage: 1,
+	lastPage: Math.ceil(allBlogPosts.length / PAGE_SIZE),
+	size: PAGE_SIZE,
+	total: allBlogPosts.length,
+	url: {
+		current: "/",
+		next: allBlogPosts.length > PAGE_SIZE ? "/page/2/" : undefined,
+		prev: undefined,
+		first: "/",
+		last: `/page/${Math.ceil(allBlogPosts.length / PAGE_SIZE)}`,
+	},
+};
+
+const len = page.data.length;
+---
+
+<MainGridLayout>
+    <PostPage page={page}></PostPage>
+	<Pagination class="mx-auto onload-animation" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
+</MainGridLayout>

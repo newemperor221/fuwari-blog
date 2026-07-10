@@ -1,0 +1,204 @@
+---
+import { Icon } from "astro-icon/components";
+import { type NavBarLink } from "../../types/config";
+import { url } from "../../utils/url-utils";
+import Categories from "./Categories.astro";
+import Profile from "./Profile.astro";
+import Tags from "./Tags.astro";
+
+interface Props {
+	links: NavBarLink[];
+}
+
+const links = Astro.props.links;
+---
+
+<!-- 遮罩层 -->
+<div id="nav-menu-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" style="z-index: 999;opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;"></div>
+
+<!-- 侧边栏面板 -->
+<div id="nav-menu-panel" class="fixed top-0 left-0 h-full bg-[var(--card-bg)] shadow-2xl z-50 border-l border-[var(--line-divider)] overflow-y-auto overflow-x-hidden" style="z-index: 9999;width: 280px; transform: translateX(-100%); transition: transform 0.3s ease-in-out; scrollbar-width: none; -ms-overflow-style: none;">
+    <div class="flex flex-col h-full">
+        <!-- 菜单内容 -->
+        <div id="nav-menu-content" class="flex-1 overflow-y-auto p-4">
+
+            <div class="lg:hidden flex flex-col gap-4">
+                <Profile></Profile>
+                <div class="border-t border-[var(--line-divider)] mb-4"></div>
+                <!-- 导航链接 -->
+                <div class="flex flex-col gap-2 mb-6">
+                    {links.map((link) => (
+                        <a 
+                            href={link.external ? link.url : url(link.url)} 
+                            class="group flex justify-between items-center py-3 px-4 rounded-xl gap-4 hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)] transition-all hover:translate-x-1"
+                            target={link.external ? "_blank" : null}
+                        >
+                            <div class="transition text-black/75 dark:text-white/75 font-medium group-hover:text-[var(--primary)] group-active:text-[var(--primary)]">
+                                {link.name}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                {!link.external && (
+                                    <Icon 
+                                        name="material-symbols:chevron-right-rounded"
+                                        class="transition text-[1.25rem] text-[var(--primary)] group-hover:translate-x-1"
+                                    />
+                                )}
+                                {link.external && (
+                                    <Icon 
+                                        name="fa6-solid:arrow-up-right-from-square"
+                                        class="transition text-[0.75rem] text-black/25 dark:text-white/25"
+                                    />
+                                )}
+                            </div>
+                        </a>
+                    ))}
+                </div>
+                <Categories></Categories>
+                <Tags></Tags>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 声明全局函数类型
+    declare global {
+        interface Window {
+            openNavMenu: () => void;
+            closeNavMenu: () => void;
+        }
+    }
+
+    // 简单直接的侧边栏控制
+    function setupNavMenu() {
+        // 打开侧边栏
+        function openSidebar() {
+            const overlay = document.getElementById('nav-menu-overlay');
+            const panel = document.getElementById('nav-menu-panel');
+            
+            if (overlay && panel) {
+                overlay.style.visibility = 'visible';
+                overlay.style.opacity = '1';
+                panel.style.transform = 'translateX(0px)';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        // 关闭侧边栏
+        function closeSidebar() {
+            const overlay = document.getElementById('nav-menu-overlay');
+            const panel = document.getElementById('nav-menu-panel');
+            
+            if (overlay && panel) {
+                overlay.style.visibility = 'hidden';
+                overlay.style.opacity = '0';
+                panel.style.transform = 'translateX(-100%)';
+                document.body.style.overflow = '';
+            }
+        }
+        
+        // 设置全局函数
+        window.openNavMenu = openSidebar;
+        window.closeNavMenu = closeSidebar;
+        
+        const overlay = document.getElementById('nav-menu-overlay');
+        const panel = document.getElementById('nav-menu-panel');
+        
+        if (overlay) {
+            overlay.onclick = (e: Event) => {
+                if (e.target === overlay) {
+                    closeSidebar();
+                }
+            };
+        }
+        
+        // ESC 键关闭
+        document.onkeydown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && panel && panel.style.transform === 'translateX(0px)') {
+                closeSidebar();
+            }
+        };
+        
+        // 点击菜单项后关闭
+        if (panel) {
+            const menuLinks = panel.querySelectorAll('a[href]');
+            menuLinks.forEach((link: Element) => {
+                (link as HTMLElement).onclick = () => {
+                    setTimeout(closeSidebar, 150);
+                };
+            });
+        }
+        
+        // 监听窗口大小变化
+        function handleResize() {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
+        }
+        
+        window.addEventListener('resize', handleResize);
+        
+        // 确保初始状态
+        closeSidebar();
+        
+        // 初始检查窗口大小
+        if (window.innerWidth > 768) {
+            closeSidebar();
+        }
+    }
+    
+    // 初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupNavMenu);
+    } else {
+        setupNavMenu();
+    }
+    
+
+</script>
+
+<style>
+    /* 侧边栏阴影效果 */
+    #nav-menu-panel {
+        box-shadow: -10px 0 25px -5px rgba(0, 0, 0, 0.1), -10px 0 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    .dark #nav-menu-panel {
+        box-shadow: -10px 0 25px -5px rgba(0, 0, 0, 0.3), -10px 0 10px -5px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* 菜单项悬停效果 */
+    #nav-menu-panel a {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    #nav-menu-panel a::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 3px;
+        background: var(--primary);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    #nav-menu-panel a:hover::before {
+        transform: translateX(0);
+    }
+    
+    /* 隐藏滚动条 */
+    #nav-menu-content::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 640px) {
+        #nav-menu-panel {
+            width: 280px;
+            max-width: 90vw;
+        }
+    }
+</style>

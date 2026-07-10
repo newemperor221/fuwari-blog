@@ -1,0 +1,139 @@
+---
+import type { CollectionEntry } from "astro:content";
+import path from "node:path";
+import { Icon } from "astro-icon/components";
+import I18nKey from "../i18n/i18nKey";
+import { i18n } from "../i18n/translation";
+import { getDir } from "../utils/url-utils";
+import ImageWrapper from "./misc/ImageWrapper.astro";
+import PostMetadata from "./PostMeta.astro";
+
+interface Props {
+	class?: string;
+	entry: CollectionEntry<"posts">;
+	title: string;
+	url: string;
+	published: Date;
+	updated?: Date;
+	tags: string[];
+	category: string[];
+	image: string;
+	description: string;
+	draft: boolean;
+	style: string;
+  pinned?: boolean;
+}
+const {
+	entry,
+	title,
+	url,
+	published,
+	updated,
+	tags,
+	category,
+	image,
+	description,
+	style,
+  pinned
+} = Astro.props;
+const className = Astro.props.class;
+
+// 核心配置：8:5 比例（480×300 的比例）
+const hasCover = image !== undefined && image !== null && image !== "";
+const imageColumnWidth = "32%";
+
+const { remarkPluginFrontmatter } = await entry.render();
+
+// 从URL路径中提取文章ID
+const extractArticleId = (urlPath: string) => {
+  const match = urlPath.match(/\/(.*)?\/$/);
+  return match ? match[1] : null;
+};
+
+const articleId = extractArticleId(url);
+---
+
+<div class:list={[
+  "card-base w-full rounded-[var(--radius-large)] overflow-hidden relative",
+  "bg-white dark:bg-gray-900 isolation:isolate",
+  className
+]} style={style}>
+  <div class:list={[
+    "grid gap-4 p-4 relative",
+    hasCover ? "grid-cols-[32%_1fr] items-start" : "grid-cols-1"
+  ]}>
+    {hasCover && (
+      <div 
+        class="relative rounded-lg overflow-hidden" 
+        style="aspect-ratio: 8/5;"
+      >
+        {pinned && <div class="absolute top-2 right-2 text-[#FF5722] z-10">
+            <Icon name="material-symbols:keep-outline" class="w-8 h-8" />
+        </div>}
+        <a href={url} aria-label={title} class="block h-full w-full group">
+          <ImageWrapper 
+            src={image} 
+            basePath={path.join("content/posts/", getDir(entry.id))} 
+            alt="Cover image of the post"
+            class="w-full h-full object-cover"
+          />
+          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 z-10"></div>
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+            <Icon name="material-symbols:chevron-right-rounded" class="text-white text-3xl" />
+          </div>
+        </a>
+      </div>
+    )}
+
+    <div class="flex flex-col justify-start">
+      <a 
+        href={url}
+        class="group block font-bold text-xl mb-3 text-gray-900 dark:text-gray-100 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] transition-colors"
+      >
+        <span class="line-clamp-2 relative">
+          {title}
+          <Icon 
+            name="material-symbols:chevron-right-rounded"
+            class="inline-block text-[var(--primary)] text-[1.5rem] ml-1 opacity-0 group-hover:opacity-100 translate-x-0 group-hover:translate-x-1 transition-all"
+          />
+        </span>
+      </a>
+
+      <div class="text-gray-700 dark:text-gray-300 mb-4 line-clamp-2 hidden min-[700px]:block">
+        <span class="line-clamp-2">
+            {description || remarkPluginFrontmatter.excerpt}
+        </span>
+      </div>
+      
+      <PostMetadata 
+        published={published} 
+        updated={updated} 
+        tags={tags} 
+        category={category || []} 
+        hideTagsForMobile={false} 
+        hideUpdateDate={true}
+        articleId={articleId}
+      />
+    </div>
+  </div>
+</div>
+
+<style>
+.visit-count .loading-text {
+  opacity: 0.6;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.visit-count.loaded {
+  opacity: 1;
+}
+
+.visit-count.error {
+  opacity: 0.5;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+}
+</style>

@@ -1,0 +1,181 @@
+---
+import path from "node:path";
+
+interface Props {
+	id?: string;
+	src: string;
+	class?: string;
+	alt?: string;
+	position?: string;
+	basePath?: string;
+}
+
+import { Image } from "astro:assets";
+import { url } from "../../utils/url-utils";
+
+const { id, src, alt, position = "center", basePath = "/" } = Astro.props;
+const className = Astro.props.class;
+
+const isLocal = !(
+	src.startsWith("/") ||
+	src.startsWith("http") ||
+	src.startsWith("https") ||
+	src.startsWith("data:")
+);
+const isPublic = src.startsWith("/");
+
+// TODO temporary workaround for images dynamic import
+// https://github.com/withastro/astro/issues/3373
+// biome-ignore lint/suspicious/noImplicitAnyLet: <check later>
+let img;
+if (isLocal) {
+	const files = import.meta.glob<ImageMetadata>("../../**", {
+		import: "default",
+	});
+	let normalizedPath = path
+		.normalize(path.join("../../", basePath, src))
+		.replace(/\\/g, "/");
+	const file = files[normalizedPath];
+	if (!file) {
+		console.error(
+			`\n[ERROR] Image file not found: ${normalizedPath.replace("../../", "src/")}`,
+		);
+	}
+	img = await file();
+}
+
+const imageClass = "w-full h-full object-cover";
+const imageStyle = `object-position: ${position}`;
+---
+<div id={id} class:list={[className, 'overflow-hidden relative']}>
+    <!-- 加载占位符 -->
+    <div class="image-loading absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-700 z-10">
+        <div class="loading-spinner w-8 h-8 border-2 border-gray-300 dark:border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
+    </div>
+    
+    <!-- 错误占位符 -->
+    <div class="image-error absolute inset-0 flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-700 z-10" style="display: none;">
+        <svg class="w-12 h-12 text-gray-400 dark:text-gray-500 mb-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+        </svg>
+        <span class="text-xs text-gray-500 dark:text-gray-400">图片加载失败</span>
+    </div>
+    
+    <div class="transition absolute inset-0 dark:bg-black/10 bg-opacity-50 pointer-events-none"></div>
+    
+    {isLocal && img && (
+        <Image 
+            src={img} 
+            alt={alt || ""} 
+            class={`${imageClass} image-wrapper-img opacity-0 transition-opacity duration-300`} 
+            style={imageStyle}
+        />
+    )}
+    
+    {!isLocal && (
+        <img 
+            src={isPublic ? url(src) : src} 
+            alt={alt || ""} 
+            class={`${imageClass} image-wrapper-img opacity-0 transition-opacity duration-300`} 
+            style={imageStyle}
+            loading="lazy"
+        />
+    )}
+</div>
+
+<script>
+    // 图片加载处理
+    function handleImageLoad() {
+        const images = document.querySelectorAll('.image-wrapper-img');
+        
+        images.forEach(imgElement => {
+            const img = imgElement as HTMLImageElement;
+            const container = img.closest('[class*="overflow-hidden"]');
+            if (!container) return;
+            
+            const loadingEl = container.querySelector('.image-loading') as HTMLElement;
+            const errorEl = container.querySelector('.image-error') as HTMLElement;
+            
+            // 图片加载成功
+            const onLoad = () => {
+                img.style.opacity = '1';
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (errorEl) errorEl.style.display = 'none';
+            };
+            
+            // 图片加载失败
+            const onError = () => {
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (errorEl) errorEl.style.display = 'flex';
+                img.style.display = 'none';
+            };
+            
+            // 检查图片是否已经加载完成
+            if (img.complete && img.naturalHeight !== 0) {
+                onLoad();
+            } else {
+                img.addEventListener('load', onLoad);
+                img.addEventListener('error', onError);
+            }
+        });
+    }
+    
+    // 页面加载完成后执行
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', handleImageLoad);
+    } else {
+        handleImageLoad();
+    }
+    
+    // 支持动态加载的图片
+    const observer = new MutationObserver(() => {
+        handleImageLoad();
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+</script>
+
+<style>
+    /* 加载动画 */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+    
+    /* 图片容器样式 */
+    .image-wrapper-img {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    .image-loading, .image-error {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    /* 骨架屏效果 */
+    @keyframes shimmer {
+        0% {
+            background-position: -200px 0;
+        }
+        100% {
+            background-position: calc(200px + 100%) 0;
+        }
+    }
+    
+    .loading-shimmer {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200px 100%;
+        animation: shimmer 1.5s infinite;
+    }
+    
+    .dark .loading-shimmer {
+        background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+        background-size: 200px 100%;
+    }
+</style>
